@@ -1,9 +1,9 @@
 A simple Consol Aplication where you can do 7 specific actions:
 
-Create a password and assign it to a website.
-Delete the password for an assigned website.
-Modify the password for an assigned website.
-Show all passwords with their corresponding websites.
-Save all passwords to a txt file.
-Find the password for a specific website.
-Generate a password.
+<br>Create a password and assign it to a website.
+<br>Delete the password for an assigned website.
+<br>Modify the password for an assigned website.
+<br>Show all passwords with their corresponding websites.
+<br>Save all passwords to a txt file.
+<br>Find the password for a specific website.
+<br>Generate a password.
