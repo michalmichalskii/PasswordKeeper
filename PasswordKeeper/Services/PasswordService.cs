@@ -220,11 +220,6 @@ namespace PasswordKeeper.Services
                             hasSpecial = true;
                             break;
                     }
-
-                    if (hasLowerLetter && hasUpperLetter && hasNumber && hasSpecial)
-                    {
-
-                    }
                 }
             }
 
