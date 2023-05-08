@@ -54,14 +54,11 @@ namespace PasswordKeeper
                         Console.WriteLine("Goodbye");
                         break;
                     default:
-                        Console.WriteLine("Incorrect choose");
+                        Console.WriteLine("Incorrect choice");
                         break;
                 }
-
                 Console.WriteLine("\n--------------------------\n");
             }
-
-            
         }
 
         public static MenuActionService Initialize(MenuActionService menuActionService)

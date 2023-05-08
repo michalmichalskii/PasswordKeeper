@@ -1,7 +1,9 @@
-﻿namespace PasswordKeeper;
-
-public class MenuAction
+﻿namespace PasswordKeeper
 {
-    public int Id { get; set; }
-    public string Action { get; set; }
+    public class MenuAction
+    {
+        public int Id { get; set; }
+        public string Action { get; set; }
+    }
 }
+

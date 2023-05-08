@@ -66,10 +66,7 @@ namespace PasswordKeeper.Services
             Console.WriteLine("Enter a password that you want to delete: ");
             var readPassword = Console.ReadLine();
 
-
             CheckIsInputFilled(readPassword);
-
-
 
             var removed = passwords.Remove(readSite, out readPassword);
 
@@ -77,7 +74,6 @@ namespace PasswordKeeper.Services
             {
                 Console.WriteLine("Password is incorrect");
             }
-
         }
 
         public void ChangePassword()
@@ -86,7 +82,6 @@ namespace PasswordKeeper.Services
             var readSite = Console.ReadLine();
 
             CheckIsInputFilled(readSite);
-
 
             foreach (var password in passwords)
             {
@@ -104,7 +99,6 @@ namespace PasswordKeeper.Services
             var newReadPassword = Console.ReadLine();
 
             CheckIsInputFilled(newReadPassword);
-
 
             for (int i = 0; i < passwords.Count; i++)
             {
@@ -180,7 +174,6 @@ namespace PasswordKeeper.Services
                 Random random = new Random();
                 var randomLengthOfPassword = random.Next(16, 20);
 
-
                 for (int i = 0; i < randomLengthOfPassword; i++)
                 {
                     var randomNumbers = random.Next(numbers.Length);
@@ -215,7 +208,6 @@ namespace PasswordKeeper.Services
                     }
                 }
             }
-
             Console.WriteLine(randomPassword);
         }
     }

@@ -1,7 +1,9 @@
-﻿namespace PasswordKeeper;
-
-public class Password
+﻿namespace PasswordKeeper
 {
-    public string PasswordString { get; set; }
-    public string SiteOfPassword { get; set; }
+    public class Password
+    {
+        public string PasswordString { get; set; }
+        public string SiteOfPassword { get; set; }
+    }
 }
+

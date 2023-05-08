@@ -18,7 +18,6 @@ namespace PasswordKeeper.Services
             _passwordService = passwordService;
         }
 
-
         public void SaveToTxtFile()
         {
             Dictionary<string, string> passwords = _passwordService.GetPasswordsWithSites();
@@ -31,7 +30,6 @@ namespace PasswordKeeper.Services
                     i++;
                 }
             }
-
             Console.WriteLine($"Operation completed. {i} rows affected");
         }
     }
