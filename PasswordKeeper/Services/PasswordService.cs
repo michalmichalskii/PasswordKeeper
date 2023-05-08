@@ -16,7 +16,7 @@ namespace PasswordKeeper.Services
             passwords = new Dictionary<string, string>();
         }
 
-        public void CheckIsInputFilled(string checkedInput)
+        private void CheckIsInputFilled(string checkedInput)
         {
             if (string.IsNullOrEmpty(checkedInput))
             {
