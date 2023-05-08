@@ -23,7 +23,7 @@ namespace PasswordKeeper.Services
                 throw new Exception("You cannot leave this space null");
             }
         }
-
+        
         public Dictionary<string, string> GetPasswordsWithSites()
         {
             return passwords;
@@ -31,7 +31,6 @@ namespace PasswordKeeper.Services
 
         public void AddNewPassword()
         {
-
             Console.WriteLine("Please enter site of your password: ");
             var readSite = Console.ReadLine();
             Console.WriteLine("Now please enter your password: ");
@@ -42,15 +41,11 @@ namespace PasswordKeeper.Services
             CheckIsInputFilled(readSite);
             CheckIsInputFilled(readPassword);
 
-
             password.SiteOfPassword = readSite;
             password.PasswordString = readPassword;
 
             passwords.Add(password.SiteOfPassword, password.PasswordString);
             Console.WriteLine("Password added correctly");
-
-
-
         }
 
         public void RemovePassword()
@@ -188,8 +183,6 @@ namespace PasswordKeeper.Services
 
                 for (int i = 0; i < randomLengthOfPassword; i++)
                 {
-
-
                     var randomNumbers = random.Next(numbers.Length);
                     var randomLetter = random.Next(alphabet.Length);
                     var randomSpecial = random.Next(specialChars.Length);
