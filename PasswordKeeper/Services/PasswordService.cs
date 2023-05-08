@@ -5,13 +5,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PasswordKeeper
+namespace PasswordKeeper.Services
 {
-    internal class PasswordService
+    public class PasswordService
     {
-        private const string PASSWORDS_FILE_PATH = "hasła.txt";
-
-
         public Dictionary<string, string> passwords;
 
         public PasswordService()
@@ -27,10 +24,15 @@ namespace PasswordKeeper
             }
         }
 
+        public Dictionary<string, string> GetPasswordsWithSites()
+        {
+            return passwords;
+        }
+
         public void AddNewPassword()
         {
 
-            Console.WriteLine("Please entrer site of your password: ");
+            Console.WriteLine("Please enter site of your password: ");
             var readSite = Console.ReadLine();
             Console.WriteLine("Now please enter your password: ");
             var readPassword = Console.ReadLine();
@@ -142,19 +144,6 @@ namespace PasswordKeeper
             }
         }
 
-        public void SaveToTxtFile()
-        {
-            using (var sw = new StreamWriter(PASSWORDS_FILE_PATH, true))
-            {
-                foreach (var password in passwords)
-                {
-                    sw.WriteLine($"{password.Key}|{password.Value}");
-                }
-            }
-
-            Console.WriteLine($"Operation completed.");
-        }
-
         public void FindPasswordOnWrittenSite()
         {
             Console.WriteLine("Enter a site name: ");
@@ -238,7 +227,7 @@ namespace PasswordKeeper
                     }
                 }
             }
-            
+
             Console.WriteLine(randomPassword);
         }
     }

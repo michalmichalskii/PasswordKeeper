@@ -1,12 +1,16 @@
-﻿namespace PasswordKeeper
+﻿using PasswordKeeper.Services;
+
+namespace PasswordKeeper
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            PasswordService passwordService = new PasswordService();
+            var passwordService = new PasswordService();
+            var txtFileService = new TxtFileService(passwordService);
 
-            while (true)
+            var chosenActionNumb = new ConsoleKeyInfo();
+            while (chosenActionNumb.Key != ConsoleKey.D0)
             {
                 Console.WriteLine("Choose an option: ");
 
@@ -19,7 +23,7 @@
                     Console.WriteLine($"{menu[i].Id}. {menu[i].Action}");
                 }
 
-                var chosenActionNumb = Console.ReadKey();
+                chosenActionNumb = Console.ReadKey();
 
                 Console.WriteLine();//line for some visibility
 
@@ -35,16 +39,19 @@
                         passwordService.ChangePassword();
                         break;
                     case ConsoleKey.D4:
-                        passwordService.GetAllPasswordsWithSites(); //in future only for some kind of admin
+                        passwordService.GetAllPasswordsWithSites(); //in future only for admin
                         break;
                     case ConsoleKey.D5:
-                        passwordService.SaveToTxtFile();
+                        txtFileService.SaveToTxtFile();
                         break;
                     case ConsoleKey.D6:
-                        passwordService.FindPasswordOnWrittenSite(); //in future only for some kind of admin
+                        passwordService.FindPasswordOnWrittenSite(); //in future only for admin
                         break;
                     case ConsoleKey.D7:
                         passwordService.GenerateRandomPassword();
+                        break;
+                    case ConsoleKey.D0:
+                        Console.WriteLine("Goodbye");
                         break;
                     default:
                         Console.WriteLine("Incorrect choose");
@@ -63,9 +70,10 @@
             menuActionService.AddActionToMenu(2, "Delete the password for an assigned website");
             menuActionService.AddActionToMenu(3, "Modify the password for an assigned website");
             menuActionService.AddActionToMenu(4, "Show all passwords with their corresponding websites");
-            menuActionService.AddActionToMenu(5, "Save all passwords to a txt file");
+            menuActionService.AddActionToMenu(5, "Save all passwords to a txt file //prototype");
             menuActionService.AddActionToMenu(6, "Find the password for a specific website");
             menuActionService.AddActionToMenu(7, "Generate a random password");
+            menuActionService.AddActionToMenu(0, "Exit");
             
             return menuActionService;
         }
