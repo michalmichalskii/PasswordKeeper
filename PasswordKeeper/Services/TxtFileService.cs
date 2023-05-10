@@ -20,7 +20,7 @@ namespace PasswordKeeper.Services
 
         public void SaveToTxtFile()
         {
-            Dictionary<string, string> passwords = _passwordService.GetPasswordsWithSites();
+            Dictionary<string, List<string>> passwords = _passwordService.GetPasswordsWithSites();
             int i = 0;
             using (var sw = new StreamWriter(PASSWORDS_FILE_PATH, true))
             {

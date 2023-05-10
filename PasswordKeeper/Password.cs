@@ -4,7 +4,7 @@
     {
         public string PasswordString { get; set; }
         public string SiteOfPassword { get; set; }
-        public string Login { get; set; }
+        public string EmailOrLogin { get; set; }
     }
 }
 
