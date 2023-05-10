@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,21 +10,26 @@ namespace PasswordKeeper.Services
 {
     public class PasswordService
     {
+        private WebService _service;
+
         public Dictionary<string, string> passwords;
 
-        public PasswordService()
+        public PasswordService(WebService service)
         {
             passwords = new Dictionary<string, string>();
+            _service = service;
         }
 
-        private void CheckIsInputFilled(string checkedInput)
+        private bool CheckIsInputFilled(string checkedInput)
         {
             if (string.IsNullOrEmpty(checkedInput))
             {
                 throw new Exception("You cannot leave this space null");
             }
+
+            return true;
         }
-        
+
         public Dictionary<string, string> GetPasswordsWithSites()
         {
             return passwords;
@@ -31,15 +37,17 @@ namespace PasswordKeeper.Services
 
         public void AddNewPassword()
         {
-            Console.WriteLine("Please enter site of your password: ");
+            Console.WriteLine("Please enter URL of a site for your password: ");
             var readSite = Console.ReadLine();
             Console.WriteLine("Now please enter your password: ");
             var readPassword = Console.ReadLine();
 
-            Password password = new Password();
+            var password = new Password();
 
             CheckIsInputFilled(readSite);
             CheckIsInputFilled(readPassword);
+
+            _service.CheckIsSiteAvailable(readSite);
 
             password.SiteOfPassword = readSite;
             password.PasswordString = readPassword;
@@ -55,12 +63,9 @@ namespace PasswordKeeper.Services
 
             CheckIsInputFilled(readSite);
 
-            foreach (var password in passwords)
+            if (passwords.ContainsKey(readSite) == false)
             {
-                if (passwords.ContainsKey(readSite) == false)
-                {
-                    throw new Exception("You have not saved password for this site");
-                }
+                throw new Exception("You have not saved password for this site");
             }
 
             Console.WriteLine("Enter a password that you want to delete: ");
@@ -83,13 +88,11 @@ namespace PasswordKeeper.Services
 
             CheckIsInputFilled(readSite);
 
-            foreach (var password in passwords)
+            if (passwords.ContainsKey(readSite) == false)
             {
-                if (passwords.ContainsKey(readSite) == false)
-                {
-                    throw new Exception("You have not saved password for this site");
-                }
+                throw new Exception("You have not saved password for this site");
             }
+
             Console.WriteLine("Enter a password that you want to delete: ");
             var readPassword = Console.ReadLine();
 
@@ -146,7 +149,7 @@ namespace PasswordKeeper.Services
             {
                 if (passwords.ContainsKey(readSite))
                 {
-                    Console.WriteLine($"Hasło do tej strony to: {password.Value}");
+                    Console.WriteLine($"A password for this site is: {password.Value}");
                     isPageFound = true;
                     break;
                 }
@@ -160,9 +163,9 @@ namespace PasswordKeeper.Services
 
         public void GenerateRandomPassword()
         {
-            string[] alphabet = new[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
-            int[] numbers = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            string[] specialChars = new[] { "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "=", "+", "[", "{", "]", "}", ";", ":", "'", "\"", ",", ".", "<", ">", "/", "?", "\\" };
+            char[] alphabet = new[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+            char[] numbers = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+            char[] specialChars = new[] { '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '[', '{', ']', '}', ';', ':', '\'', '\"', ',', '.', '<', '>', '/', '?', '\\' };
             bool hasUpperLetter = false, hasLowerLetter = false, hasSpecial = false, hasNumber = false;
 
             string randomPassword = "";
@@ -188,7 +191,7 @@ namespace PasswordKeeper.Services
                         case 1:
                             if (randomUpperOrNot == 1)
                             {
-                                randomPassword += alphabet[randomLetter].ToUpper();
+                                randomPassword += char.ToUpper(alphabet[randomLetter]);
                                 hasUpperLetter = true;
                             }
                             else

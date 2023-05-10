@@ -4,9 +4,12 @@ namespace PasswordKeeper
 {
     public class Program
     {
+        //TODO - Expanse app to save not only a site and a password, but also email/login
+
         static void Main(string[] args)
         {
-            var passwordService = new PasswordService();
+            var webService = new WebService();
+            var passwordService = new PasswordService(webService);
             var txtFileService = new TxtFileService(passwordService);
 
             var chosenActionNumb = new ConsoleKeyInfo();
