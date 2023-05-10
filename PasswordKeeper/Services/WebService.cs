@@ -13,7 +13,7 @@ namespace PasswordKeeper.Services
     {
         public int CheckIsSiteAvailable(string readSite)
         {
-            var ping = new System.Net.NetworkInformation.Ping();
+            var ping = new Ping();
             PingReply result;
             try
             {
@@ -25,7 +25,7 @@ namespace PasswordKeeper.Services
             }
 
             //I am not sure is if statement necessary
-            if (result.Status != System.Net.NetworkInformation.IPStatus.Success)
+            if (result.Status != IPStatus.Success)
                 return -1;
 
             return 0;
