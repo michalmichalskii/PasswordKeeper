@@ -1,4 +1,6 @@
-﻿namespace PasswordKeeper.Services
+﻿using PasswordKeeper.Enums;
+
+namespace PasswordKeeper.Services
 {
     public class PasswordService
     {
@@ -7,11 +9,35 @@
         private List<string> _listOfUserDataForSite;
         private Dictionary<string, List<string>> _passwords;
 
-
         public PasswordService(WebService service)
         {
             _passwords = new Dictionary<string, List<string>>();
             _service = service;
+        }
+
+        public string MakeEncryptionOrDescryption(string clearInput, Cipher encryptionOrDescryption)
+        {
+            int key = 0;
+
+            if (encryptionOrDescryption == Cipher.Encryption)
+            {
+                key = 10;
+            }
+            else
+            {
+                key = -10;
+            }
+
+            int encryption = 0;
+            string encryptedText = "";
+
+            for (int i = 0; i < clearInput.Length; i++)
+            {
+                int textUser = (int)clearInput[i];
+                encryption = textUser + key;
+                encryptedText += Char.ConvertFromUtf32(encryption);
+            }
+            return encryptedText;
         }
 
         private bool CheckIsInputFilled(string checkedInput)
@@ -163,11 +189,8 @@
             foreach (var password in _passwords)
             {
                 string[] emailAndPassword = password.Value.ToArray();
-
                 Console.WriteLine($"{i}|{password.Key}|{emailAndPassword[0]}|{emailAndPassword[1]}");
                 i++;
-
-
             }
         }
 
@@ -196,7 +219,6 @@
                 Console.WriteLine($"You do not have any password saved to site: {readSite}");
             }
         }
-
         public void GenerateRandomPassword()
         {
             char[] alphabet = new[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
@@ -251,4 +273,3 @@
         }
     }
 }
-
