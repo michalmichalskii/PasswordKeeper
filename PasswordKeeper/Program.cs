@@ -71,7 +71,7 @@ namespace PasswordKeeper
             menuActionService.AddActionToMenu(5, "Save all passwords to a txt file //prototype");
             menuActionService.AddActionToMenu(6, "Find the password for a specific website");
             menuActionService.AddActionToMenu(7, "Generate a random password");
-            menuActionService.AddActionToMenu(0, "Exit");
+            menuActionService.AddActionToMenu(0, "Exit");  
             
             return menuActionService;
         }

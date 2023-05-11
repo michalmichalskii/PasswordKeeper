@@ -1,118 +1,95 @@
-﻿using PasswordKeeper.Enums;
-
-namespace PasswordKeeper.Services
+﻿namespace PasswordKeeper.Services
 {
     public class PasswordService
     {
         private WebService _service;
 
-        private List<string> _listOfUserDataForSite;
-        private Dictionary<string, List<string>> _passwords;
+        private Dictionary<string, UserDataModel> _passwords;
 
         public PasswordService(WebService service)
         {
-            _passwords = new Dictionary<string, List<string>>();
+            _passwords = new Dictionary<string, UserDataModel>();
             _service = service;
         }
 
-        public string MakeEncryptionOrDescryption(string clearInput, Cipher encryptionOrDescryption)
+        private bool CheckIsInputFilled(params string[] checkedInput)
         {
-            int key = 0;
-
-            if (encryptionOrDescryption == Cipher.Encryption)
+            for (int i = 0; i < checkedInput.Length; i++)
             {
-                key = 10;
-            }
-            else
-            {
-                key = -10;
-            }
-
-            int encryption = 0;
-            string encryptedText = "";
-
-            for (int i = 0; i < clearInput.Length; i++)
-            {
-                int textUser = (int)clearInput[i];
-                encryption = textUser + key;
-                encryptedText += Char.ConvertFromUtf32(encryption);
-            }
-            return encryptedText;
-        }
-
-        private bool CheckIsInputFilled(string checkedInput)
-        {
-            if (string.IsNullOrEmpty(checkedInput))
-            {
-                throw new Exception("You cannot leave this space null");
+                if (string.IsNullOrWhiteSpace(checkedInput[i]))
+                {
+                    Console.WriteLine("You cannot left blanks");
+                    return false;
+                }
             }
 
             return true;
         }
 
-        public Dictionary<string, List<string>> GetPasswordsWithSites()
+        public Dictionary<string, UserDataModel> GetPasswordsDictionary()
         {
             return _passwords;
         }
 
         public void AddNewPassword()
         {
-            Console.WriteLine("Please enter URL of a site for your password: ");
-            var readSite = Console.ReadLine();
-            Console.WriteLine("Please enter your Email for this site: ");
-            var readEmail = Console.ReadLine();
-            Console.WriteLine("Now please enter your password: ");
-            var readPassword = Console.ReadLine();
+            var isFilled = false;
+            string readSite = "", readEmail = "", readPassword = "";
 
-            var password = new Password();
-
-            CheckIsInputFilled(readEmail);
-            CheckIsInputFilled(readSite);
-            CheckIsInputFilled(readPassword);
-
-            _service.CheckIsSiteAvailable(readSite);
-
-            password.SiteOfPassword = readSite;
-            password.EmailOrLogin = readEmail;
-            password.PasswordString = readPassword;
-
-            _listOfUserDataForSite = new List<string>
+            while (isFilled == false)
             {
-                readEmail,
-                readPassword
-            };
+                Console.WriteLine("Please enter URL of a site for your password: ");
+                readSite = Console.ReadLine();
+                Console.WriteLine("Please enter your Email for this site: ");
+                readEmail = Console.ReadLine();
+                Console.WriteLine("Now please enter your password: ");
+                readPassword = Console.ReadLine();
 
-            _passwords.Add(password.SiteOfPassword, _listOfUserDataForSite);
+                isFilled = CheckIsInputFilled(readEmail, readSite, readPassword);
+            }
+
+            var userData = new UserDataModel();
+
+            var isAvailable = _service.CheckIsSiteAvailable(readSite);
+
+            userData.EmailOrLogin = readEmail;
+            userData.PasswordString = readPassword;
+
+            _passwords.Add(readSite, userData);
+
             Console.WriteLine("Password added correctly");
         }
 
         public void RemovePassword()
         {
-            Console.WriteLine("Enter a site of password that you want to delete: ");
-            var readSite = Console.ReadLine();
+            var isFilled = false;
+            string readSite = "", readEmail = "", readPassword = "";
 
-            CheckIsInputFilled(readSite);
-
-            if (_passwords.ContainsKey(readSite) == false)
+            while (isFilled == false)
             {
-                throw new Exception("You have not saved password for this site");
+                Console.WriteLine("Enter a site of password that you want to delete: ");
+                readSite = Console.ReadLine();
+
+                if (_passwords.ContainsKey(readSite) == false)
+                {
+                    throw new Exception("You have not saved password for this site");
+                }
+
+                Console.WriteLine("Enter a email for site that you want to delete: ");
+                readEmail = Console.ReadLine();
+                Console.WriteLine("Enter a password that you want to delete: ");
+                readPassword = Console.ReadLine();
+
+                isFilled = CheckIsInputFilled(readSite, readEmail, readPassword);
             }
 
-            Console.WriteLine("Enter a email for site that you want to delete: ");
-            var readEmail = Console.ReadLine();
-            Console.WriteLine("Enter a password that you want to delete: ");
-            var readPassword = Console.ReadLine();
-
-            CheckIsInputFilled(readEmail);
-            CheckIsInputFilled(readPassword);
-
-            _listOfUserDataForSite = new List<string>
+            UserDataModel userData = new UserDataModel()
             {
-                readEmail,
-                readPassword
+                EmailOrLogin = readEmail,
+                PasswordString = readPassword
             };
 
-            var removed = _passwords.Remove(readSite, out _listOfUserDataForSite); //can be empty list?
+            var removed = _passwords.Remove(readSite, out userData);
 
             if (removed == false)
             {
@@ -123,37 +100,39 @@ namespace PasswordKeeper.Services
 
         public void ChangePassword()
         {
-            Console.WriteLine("Enter a site of password that you want to change: ");
-            var readSite = Console.ReadLine();
+            var isFilled = false;
+            string readSite = "", readEmail = "", readPassword = "";
 
-            CheckIsInputFilled(readSite);
-
-            if (_passwords.ContainsKey(readSite) == false)
+            while (isFilled == false)
             {
-                throw new Exception("You have not saved password for this site");
+                Console.WriteLine("Enter a site of password that you want to change: ");
+                readSite = Console.ReadLine();
+
+                if (_passwords.ContainsKey(readSite) == false)
+                {
+                    throw new Exception("You have not saved password for this site");
+                }
+
+                Console.WriteLine("Enter a email for site where you want to change a password: ");
+                readEmail = Console.ReadLine();
+
+                Console.WriteLine("Enter an old password: ");
+                readPassword = Console.ReadLine();
+
+                isFilled = CheckIsInputFilled(readSite, readEmail, readPassword);
             }
 
-            Console.WriteLine("Enter a email for site where you want to change a password: ");
-            var readEmail = Console.ReadLine();
-
-            CheckIsInputFilled(readEmail);
-
-            Console.WriteLine("Enter a password that you want to delete: ");
-            var readPassword = Console.ReadLine();
-
-            CheckIsInputFilled(readPassword);
-
-            _listOfUserDataForSite = new List<string>
+            var oldUserData = new UserDataModel()
             {
-                readEmail,
-                readPassword
+                EmailOrLogin = readEmail,
+                PasswordString = readPassword
             };
 
             for (int i = 0; i < _passwords.Count; i++)
             {
-                if (_passwords.TryGetValue(readSite, out _listOfUserDataForSite))
+                if (_passwords.TryGetValue(readSite, out oldUserData))
                 {
-                    var removed = _passwords.Remove(readSite, out _listOfUserDataForSite);
+                    var removed = _passwords.Remove(readSite, out oldUserData);
 
                     if (removed == false)
                     {
@@ -161,25 +140,23 @@ namespace PasswordKeeper.Services
                     }
                 }
             }
-
-            _listOfUserDataForSite.Clear();
-
-            Console.WriteLine("Enter a new password: ");
-            var newReadPassword = Console.ReadLine();
-
-            CheckIsInputFilled(newReadPassword);
-
-            var newPassword = new Password
+            var newReadPassword = "";
+            var isFillednewPassword = false;
+            while (isFillednewPassword == false)
             {
-                SiteOfPassword = readSite,
+                Console.WriteLine("Enter a new password: ");
+                newReadPassword = Console.ReadLine();
+
+                isFillednewPassword = CheckIsInputFilled(newReadPassword);
+            }
+
+            var newUserData = new UserDataModel()
+            {
                 EmailOrLogin = readEmail,
                 PasswordString = newReadPassword
             };
 
-            _listOfUserDataForSite.Add(readEmail);
-            _listOfUserDataForSite.Add(newReadPassword);
-
-            _passwords.Add(readSite, _listOfUserDataForSite);
+            _passwords.Add(readSite, newUserData);
         }
 
         public void GetAllPasswordsWithSites()
@@ -188,18 +165,23 @@ namespace PasswordKeeper.Services
             Console.WriteLine("ID|SITE|EMAIL|PASSWORD");
             foreach (var password in _passwords)
             {
-                string[] emailAndPassword = password.Value.ToArray();
-                Console.WriteLine($"{i}|{password.Key}|{emailAndPassword[0]}|{emailAndPassword[1]}");
+                Console.WriteLine($"{i}|{password.Key}|{password.Value.EmailOrLogin}|{password.Value.PasswordString}");
                 i++;
             }
         }
 
         public void FindPasswordOnWrittenSite()
         {
-            Console.WriteLine("Enter a site name: ");
-            var readSite = Console.ReadLine();
+            var isFilled = false;
+            var readSite = "";
 
-            CheckIsInputFilled(readSite);
+            while (isFilled == false)
+            {
+                Console.WriteLine("Enter a site name: ");
+                readSite = Console.ReadLine();
+
+                isFilled = CheckIsInputFilled(readSite);
+            }
 
             bool isPageFound = false;
 
@@ -207,8 +189,7 @@ namespace PasswordKeeper.Services
             {
                 if (_passwords.ContainsKey(readSite))
                 {
-                    var passwordToShow = password.Value.ToArray();
-                    Console.WriteLine($"A password for this site is: {passwordToShow[1]}");
+                    Console.WriteLine($"A password for this site is: {password.Value.PasswordString}");
                     isPageFound = true;
                     break;
                 }
@@ -232,7 +213,7 @@ namespace PasswordKeeper.Services
             {
                 randomPassword = "";
 
-                Random random = new Random();
+                var random = new Random();
                 var randomLengthOfPassword = random.Next(16, 20);
 
                 for (int i = 0; i < randomLengthOfPassword; i++)

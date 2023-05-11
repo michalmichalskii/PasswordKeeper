@@ -11,7 +11,7 @@ namespace PasswordKeeper.Services
 {
     public class WebService
     {
-        public int CheckIsSiteAvailable(string readSite)
+        public bool CheckIsSiteAvailable(string readSite)
         {
             var ping = new Ping();
             PingReply result;
@@ -24,11 +24,7 @@ namespace PasswordKeeper.Services
                 throw new Exception("This site actually doesn't exist");
             }
 
-            //I am not sure is if statement necessary
-            if (result.Status != IPStatus.Success)
-                return -1;
-
-            return 0;
+            return result.Status == IPStatus.Success;
         }
     }
 }
