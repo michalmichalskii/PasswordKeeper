@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace PasswordKeeper.Services
+namespace PasswordKeeper.App.Managers
 {
-    public class WebService
+    public class WebManager
     {
         public bool CheckIsSiteAvailable(string readSite)
         {

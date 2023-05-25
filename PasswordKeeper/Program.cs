@@ -1,23 +1,30 @@
-﻿using PasswordKeeper.Services;
-
+﻿using PasswordKeeper.App.Concrete;
+using PasswordKeeper.App.Managers;
+using PasswordKeeper.Domain.Entity;
 namespace PasswordKeeper
 {
     public class Program
     {
+
+        //TODO - 1.add something to check is Password strong
+        //TODO - 2.user has to get info if something goes wrong in incorrect try of password change
+
         static void Main(string[] args)
         {
-            var webService = new WebService();
-            var passwordService = new PasswordService(webService);
-            var txtFileService = new TxtFileService(passwordService);
+            MenuActionService menuActionService = new MenuActionService();
+            WebManager webService = new WebManager();
+            PasswordService passwordService = new PasswordService();
+            PasswordManager passwordManager = new PasswordManager(menuActionService);
+            TxtFileManager txtFileService = new TxtFileManager(passwordManager);
+
+            passwordManager.InitializeSomePasswords();
 
             var chosenActionNumb = new ConsoleKeyInfo();
             while (chosenActionNumb.Key != ConsoleKey.D0)
             {
                 Console.WriteLine("Choose an option: ");
 
-                var menuActionService = new MenuActionService();
-                menuActionService = Initialize(menuActionService);
-                var menu = menuActionService.GetMenuActions();
+                var menu = menuActionService.GetAllItems();
 
                 for (int i = 0; i < menu.Count; i++)
                 {
@@ -31,25 +38,25 @@ namespace PasswordKeeper
                 switch (chosenActionNumb.Key)
                 {
                     case ConsoleKey.D1:
-                        passwordService.AddNewPassword();
+                        passwordManager.AddNewUserData();
                         break;
                     case ConsoleKey.D2:
-                        passwordService.RemovePassword();
+                        passwordManager.RemoveUserData();
                         break;
                     case ConsoleKey.D3:
-                        passwordService.ChangePassword();
+                        passwordManager.ChangePassword();
                         break;
                     case ConsoleKey.D4:
-                        passwordService.GetAllPasswordsWithSites(); //in future only for admin
+                        passwordManager.GetAllPasswordsWithSites(); //in future only for admin
                         break;
                     case ConsoleKey.D5:
                         txtFileService.SaveToTxtFile();
                         break;
                     case ConsoleKey.D6:
-                        passwordService.FindPasswordOnWrittenSite(); //in future only for admin
+                        passwordManager.FindPasswordOnWrittenSite(); //in future only for admin
                         break;
                     case ConsoleKey.D7:
-                        passwordService.GenerateRandomPassword();
+                        passwordManager.GenerateRandomPassword();
                         break;
                     case ConsoleKey.D0:
                         Console.WriteLine("Goodbye");
@@ -62,18 +69,6 @@ namespace PasswordKeeper
             }
         }
 
-        public static MenuActionService Initialize(MenuActionService menuActionService)
-        {
-            menuActionService.AddActionToMenu(1, "Create a password and assign it to a website");
-            menuActionService.AddActionToMenu(2, "Delete the password for an assigned website");
-            menuActionService.AddActionToMenu(3, "Modify the password for an assigned website");
-            menuActionService.AddActionToMenu(4, "Show all passwords with their corresponding websites");
-            menuActionService.AddActionToMenu(5, "Save all passwords to a txt file //prototype");
-            menuActionService.AddActionToMenu(6, "Find the password for a specific website");
-            menuActionService.AddActionToMenu(7, "Generate a random password");
-            menuActionService.AddActionToMenu(0, "Exit");  
-            
-            return menuActionService;
-        }
+        
     }
 }
