@@ -12,14 +12,14 @@ namespace PasswordKeeper.Test
         public void Test1()
         {
             //Arrange
-            UserDataModel userDataModel = new UserDataModel(1,"op.pl","mich@op.pl","Password1");
+            UserDataModel userDataModel = new UserDataModel(1,"wp.pl","mich@op.pl","Password1");
             var mock = new Mock<IService<UserDataModel>>();
             mock.Setup(s => s.GetItemById(1)).Returns(userDataModel);
 
             var manager = new UserDataManager(new MenuActionService(), mock.Object);
             //Act
 
-            var returnedUserDataModel = manager.GetUserById(userDataModel.Id );
+            var returnedUserDataModel = manager.GetUserById(userDataModel.Id);
             //Assert
 
             Assert.Equal(userDataModel, returnedUserDataModel);

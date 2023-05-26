@@ -126,16 +126,21 @@ namespace PasswordKeeper.App.Managers
 
         public UserDataModel RemoveUserData()
         {
-            Console.WriteLine("Enter a site of password that you want to delete: ");
+            GetAllPasswordsWithSites(false);
+            Console.WriteLine("Enter an id of site you want to delete: ");
+            var key = Console.ReadKey();
+            var readId = key.KeyChar.ToString();
 
-            UserDataModel userDataToDelete = GetUserBySite();
+            var user = GetUserById(int.Parse(readId));
 
-            if (userDataToDelete == null)
+            if (!_userDataService.Items.Remove(user))
+            {
+                Console.WriteLine("\nIncorrect id");
                 return null;
+            }
 
-            _userDataService.Items.Remove(userDataToDelete);
-            Console.WriteLine("Data deleted correctly");
-            return userDataToDelete;
+            Console.WriteLine("\nData deleted correctly");
+            return user;
         }
 
         public UserDataModel ChangePassword()
@@ -143,13 +148,12 @@ namespace PasswordKeeper.App.Managers
             var isFilled = false;
             string readSite = "", readEmail = "", readPassword = "";
 
-            Console.WriteLine("Enter a site of password that you want to change: ");
+            GetAllPasswordsWithSites(false);
+            Console.WriteLine("Enter an id of site you want to change: ");
+            var key = Console.ReadKey();
+            var readId = key.KeyChar.ToString();
 
-            UserDataModel userModelToChange = GetUserBySite();
-            if (userModelToChange == null)
-            {
-                return null;
-            }
+            var user = GetUserById(int.Parse(readId));
 
             while (isFilled == false)
             {
@@ -163,7 +167,7 @@ namespace PasswordKeeper.App.Managers
                 isFilled = CheckIsInputFilled(readEmail, readPassword);
             }
 
-            if (userModelToChange.EmailOrLogin != readEmail || userModelToChange.PasswordString != readPassword)
+            if (user.EmailOrLogin != readEmail || user.PasswordString != readPassword)
             {
                 Console.WriteLine("Email/Login or password are incorrect");
                 return null;
@@ -172,18 +176,21 @@ namespace PasswordKeeper.App.Managers
             Console.WriteLine("Enter a new password:");
             string readNewPassword = Console.ReadLine();
 
-            userModelToChange.PasswordString = readNewPassword;
+            user.PasswordString = readNewPassword;
 
             Console.WriteLine("operation succeeded");
-            return userModelToChange;
+            return user;
         }
 
-        public void GetAllPasswordsWithSites()
+        public void GetAllPasswordsWithSites(bool showAll = true)
         {
             Console.WriteLine("ID|SITE|EMAIL|PASSWORD");
             foreach (var password in _userDataService.Items)
             {
-                Console.WriteLine($"{password.Id}|{password.Site}|{password.EmailOrLogin}|{password.PasswordString}");
+                Console.Write($"{password.Id}|{password.Site}");
+                if (showAll)
+                    Console.Write($"|{password.EmailOrLogin}|{password.PasswordString}");
+                Console.WriteLine();
             }
         }
 
