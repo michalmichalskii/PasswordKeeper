@@ -16,6 +16,11 @@ namespace PasswordKeeper.App.Common
         {
             Items = new List<T>();
         }
+        public T GetItemById(int id)
+        {
+            var entity = Items.FirstOrDefault(p => p.Id == id);
+            return entity;
+        }
         public int GetLastId()
         {
             int lastId;

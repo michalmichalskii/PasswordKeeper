@@ -14,8 +14,8 @@ namespace PasswordKeeper.App.Managers
     {
         private const string PASSWORDS_FILE_PATH = "hasła.txt";
 
-        private PasswordManager _passwordManager;
-        public TxtFileManager(PasswordManager passwordManager)
+        private UserDataManager _passwordManager;
+        public TxtFileManager(UserDataManager passwordManager)
         {
             _passwordManager = passwordManager;
         }

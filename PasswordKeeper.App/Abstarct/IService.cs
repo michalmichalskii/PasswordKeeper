@@ -10,9 +10,10 @@ namespace PasswordKeeper.App.Abstarct
     {
         List<T> Items { get; set; }
         List<T> GetAllItems();
+        T GetItemById(int id);
         int AddItem(T item);
         void DeleteItem(T item);
         int UpdateItem(T item);
-
+        int GetLastId();
     }
 }

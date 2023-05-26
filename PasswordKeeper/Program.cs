@@ -12,12 +12,11 @@ namespace PasswordKeeper
         static void Main(string[] args)
         {
             MenuActionService menuActionService = new MenuActionService();
-            WebManager webService = new WebManager();
-            PasswordService passwordService = new PasswordService();
-            PasswordManager passwordManager = new PasswordManager(menuActionService);
-            TxtFileManager txtFileService = new TxtFileManager(passwordManager);
+            UserDataService userDataService = new UserDataService();
+            UserDataManager userDataManager = new UserDataManager(menuActionService,userDataService);
+            TxtFileManager txtFileService = new TxtFileManager(userDataManager);
 
-            passwordManager.InitializeSomePasswords();
+            userDataManager.InitializeSomePasswords();
 
             var chosenActionNumb = new ConsoleKeyInfo();
             while (chosenActionNumb.Key != ConsoleKey.D0)
@@ -38,25 +37,25 @@ namespace PasswordKeeper
                 switch (chosenActionNumb.Key)
                 {
                     case ConsoleKey.D1:
-                        passwordManager.AddNewUserData();
+                        userDataManager.AddNewUserData();
                         break;
                     case ConsoleKey.D2:
-                        passwordManager.RemoveUserData();
+                        userDataManager.RemoveUserData();
                         break;
                     case ConsoleKey.D3:
-                        passwordManager.ChangePassword();
+                        userDataManager.ChangePassword();
                         break;
                     case ConsoleKey.D4:
-                        passwordManager.GetAllPasswordsWithSites(); //in future only for admin
+                        userDataManager.GetAllPasswordsWithSites(); //in future only for admin
                         break;
                     case ConsoleKey.D5:
                         txtFileService.SaveToTxtFile();
                         break;
                     case ConsoleKey.D6:
-                        passwordManager.FindPasswordOnWrittenSite(); //in future only for admin
+                        userDataManager.FindPasswordOnWrittenSite(); //in future only for admin
                         break;
                     case ConsoleKey.D7:
-                        passwordManager.GenerateRandomPassword();
+                        userDataManager.GenerateRandomPassword();
                         break;
                     case ConsoleKey.D0:
                         Console.WriteLine("Goodbye");

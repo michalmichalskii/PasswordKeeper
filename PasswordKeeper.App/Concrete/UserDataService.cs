@@ -4,7 +4,7 @@ using PasswordKeeper.Domain.Entity;
 
 namespace PasswordKeeper.App.Concrete
 {
-    public class PasswordService : BaseService<UserDataModel>
+    public class UserDataService : BaseService<UserDataModel>
     {
     }
 }

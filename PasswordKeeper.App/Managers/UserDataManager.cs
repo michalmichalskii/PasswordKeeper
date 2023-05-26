@@ -1,4 +1,5 @@
-﻿using PasswordKeeper.App.Concrete;
+﻿using PasswordKeeper.App.Abstarct;
+using PasswordKeeper.App.Concrete;
 using PasswordKeeper.Domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -9,20 +10,22 @@ using System.Threading.Tasks;
 
 namespace PasswordKeeper.App.Managers
 {
-    public class PasswordManager
+    public class UserDataManager
     {
-        private PasswordService _passwordService;
+        private readonly MenuActionService _menuActionService;
+        private IService<UserDataModel> _userDataService;
         private WebManager _webManager;
-        public PasswordManager(MenuActionService actionService)
+        public UserDataManager(MenuActionService actionService, IService<UserDataModel> userDataService)
         {
+            _menuActionService = actionService;
             _webManager = new WebManager();
-            _passwordService = new PasswordService();
+            _userDataService = userDataService;
         }
 
         public void InitializeSomePasswords()
         {
-            _passwordService.AddItem(new UserDataModel(1, "wp.pl", "mich@wp.pl", "Password1"));
-            _passwordService.AddItem(new UserDataModel(2, "polska.pl", "mich@polska.pl", "Password2"));
+            _userDataService.AddItem(new UserDataModel(1, "wp.pl", "mich@wp.pl", "Password1"));
+            _userDataService.AddItem(new UserDataModel(2, "polska.pl", "mich@polska.pl", "Password2"));
         }
         private bool CheckIsInputFilled(params string[] checkedInput)
         {
@@ -37,25 +40,43 @@ namespace PasswordKeeper.App.Managers
 
             return true;
         }
-
+        private bool IsPasswordCorrect(string readPassword)
+        {
+            if (readPassword.Length < 6)
+            {
+                Console.WriteLine("Password has to have minimum 6 characters");
+                Console.WriteLine("Enter correct password:");
+                return false;
+            }
+            else
+                return true;
+        }
         public List<UserDataModel> GetPasswordsList()
         {
-            return _passwordService.Items;
+            return _userDataService.Items;
         }
-
+        public UserDataModel GetUserById(int id)
+        {
+            var item = _userDataService.GetItemById(id);
+            return item;
+        }
         public UserDataModel AddNewUserData()
         {
-            var isFilled = false;
+            bool isFilled = false, isCorrectPass = false;
             string readSite = "", readEmail = "", readPassword = "";
 
-            while (isFilled == false)
+            while (!isFilled)
             {
                 Console.WriteLine("Please enter URL of a site for your password: ");
                 readSite = Console.ReadLine();
                 Console.WriteLine("Please enter your Email for this site: ");
                 readEmail = Console.ReadLine();
-                Console.WriteLine("Now please enter your password: ");
-                readPassword = Console.ReadLine();
+                Console.WriteLine("Now please enter your password: (min length is 6 chars)");
+                do
+                {
+                    readPassword = Console.ReadLine();
+                    isCorrectPass = IsPasswordCorrect(readPassword);
+                } while (!isCorrectPass);
 
                 isFilled = CheckIsInputFilled(readEmail, readSite, readPassword);
             }
@@ -66,12 +87,12 @@ namespace PasswordKeeper.App.Managers
                 return null;
             }
 
-            int lastId = _passwordService.GetLastId();
+            int lastId = _userDataService.GetLastId();
             var userData = new UserDataModel(lastId + 1, readSite, readEmail, readPassword);
 
             try
             {
-                _passwordService.AddItem(userData);
+                _userDataService.AddItem(userData);
             }
             catch (Exception)
             {
@@ -86,13 +107,13 @@ namespace PasswordKeeper.App.Managers
         {
             string readSite = Console.ReadLine();
 
-            if (!_passwordService.Items.Any(x => x.Site == readSite))
+            if (!_userDataService.Items.Any(x => x.Site == readSite))
             {
                 Console.WriteLine("You have not saved password for this site");
                 return null;
             }
 
-            foreach (var userModel in _passwordService.Items)
+            foreach (var userModel in _userDataService.Items)
             {
                 if (userModel.Site == readSite)
                 {
@@ -112,7 +133,7 @@ namespace PasswordKeeper.App.Managers
             if (userDataToDelete == null)
                 return null;
 
-            _passwordService.Items.Remove(userDataToDelete);
+            _userDataService.Items.Remove(userDataToDelete);
             Console.WriteLine("Data deleted correctly");
             return userDataToDelete;
         }
@@ -160,7 +181,7 @@ namespace PasswordKeeper.App.Managers
         public void GetAllPasswordsWithSites()
         {
             Console.WriteLine("ID|SITE|EMAIL|PASSWORD");
-            foreach (var password in _passwordService.Items)
+            foreach (var password in _userDataService.Items)
             {
                 Console.WriteLine($"{password.Id}|{password.Site}|{password.EmailOrLogin}|{password.PasswordString}");
             }
