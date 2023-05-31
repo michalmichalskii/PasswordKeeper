@@ -6,20 +6,18 @@ using System.Threading.Tasks;
 
 namespace PasswordKeeper.Cypher
 {
-    public class DescryptionMaker //maybe static class?
+    public class DescryptionMaker
     {
         public static string MakeCesarDescryption(string clearInput, int key = 10)
         {
-            int descryption = 0;
-            string descryptedText = "";
+            StringBuilder descryptedText = new StringBuilder();
 
             for (int i = 0; i < clearInput.Length; i++)
             {
-                int textUser = clearInput[i];
-                descryption = textUser + key;
-                descryptedText += char.ConvertFromUtf32(descryption);
+                int descryption = clearInput[i] + key;
+                descryptedText.Append(char.ConvertFromUtf32(descryption));
             }
-            return descryptedText;
+            return descryptedText.ToString();
         }
     }
 }

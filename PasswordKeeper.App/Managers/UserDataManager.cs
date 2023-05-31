@@ -1,4 +1,5 @@
-﻿using PasswordKeeper.App.Abstarct;
+﻿using ConsoleTables;
+using PasswordKeeper.App.Abstarct;
 using PasswordKeeper.App.Concrete;
 using PasswordKeeper.Domain.Entity;
 using System;
@@ -13,19 +14,13 @@ namespace PasswordKeeper.App.Managers
     public class UserDataManager
     {
         private readonly MenuActionService _menuActionService;
-        private IService<UserDataModel> _userDataService;
-        private WebManager _webManager;
-        public UserDataManager(MenuActionService actionService, IService<UserDataModel> userDataService)
+        private IService<User> _userDataService;
+        private WebService _webManager;
+        public UserDataManager(MenuActionService actionService, IService<User> userDataService)
         {
             _menuActionService = actionService;
-            _webManager = new WebManager();
+            _webManager = new WebService();
             _userDataService = userDataService;
-        }
-
-        public void InitializeSomePasswords()
-        {
-            _userDataService.AddItem(new UserDataModel(1, "wp.pl", "mich@wp.pl", "Password1"));
-            _userDataService.AddItem(new UserDataModel(2, "polska.pl", "mich@polska.pl", "Password2"));
         }
         private bool CheckIsInputFilled(params string[] checkedInput)
         {
@@ -40,59 +35,103 @@ namespace PasswordKeeper.App.Managers
 
             return true;
         }
+        private int GetUserIntKeyInput()
+        {
+            var key = Console.ReadKey();
+            var readId = key.KeyChar.ToString();
+            return int.Parse(readId);
+        }
+        private string GetUserNotNullStringInput(string prompt)
+        {
+            string retrievedString = "";
+            bool isFilled = false;
+            while (!isFilled)
+            {
+                Console.WriteLine(prompt);
+                retrievedString = Console.ReadLine();
+                isFilled = CheckIsInputFilled(retrievedString);
+            }
+            return retrievedString;
+        }
         private bool IsPasswordCorrect(string readPassword)
         {
             if (readPassword.Length < 6)
             {
                 Console.WriteLine("Password has to have minimum 6 characters");
-                Console.WriteLine("Enter correct password:");
                 return false;
             }
             else
                 return true;
         }
-        public List<UserDataModel> GetPasswordsList()
+        private string GetCorrectUserPassword(string prompt)
+        {
+            bool isCorrectPass;
+            string password;
+            do
+            {
+                password = GetUserNotNullStringInput(prompt);
+                isCorrectPass = IsPasswordCorrect(password);
+            } while (!isCorrectPass);
+            return password;
+        }
+        private string GetUniqueSite(string prompt)
+        {
+            string site = GetUserNotNullStringInput(prompt);
+            foreach (var item in _userDataService.Items)
+            {
+                if (item.Site == site)
+                {
+                    Console.WriteLine("You already have saved data for this site");
+                    return null;
+                }
+            }
+            return site;
+        }
+        private string GetCorrectEmail(string prompt)
+        {
+            bool isCorrectEmail;
+            string email;
+
+            do
+            {
+                email = GetUserNotNullStringInput(prompt);
+                isCorrectEmail = IsEmailUniqueAndCorrect(email);
+            } while (!isCorrectEmail);
+            return email;
+        }
+        private bool IsEmailUniqueAndCorrect(string email)
+        {
+            if (!email.Contains('@') && !email.Contains('.'))
+            {
+                Console.WriteLine("Incorrect email format");
+                return false;
+            }
+            return true;
+        }
+
+        public List<User> GetPasswordsList()
         {
             return _userDataService.Items;
         }
-        public UserDataModel GetUserById(int id)
+        public User GetUserById(int id)
         {
             var item = _userDataService.GetItemById(id);
             return item;
         }
-        public UserDataModel AddNewUserData()
-        {
-            bool isFilled = false, isCorrectPass = false;
-            string readSite = "", readEmail = "", readPassword = "";
-
-            while (!isFilled)
-            {
-                Console.WriteLine("Please enter URL of a site for your password: ");
-                readSite = Console.ReadLine();
-                Console.WriteLine("Please enter your Email for this site: ");
-                readEmail = Console.ReadLine();
-                Console.WriteLine("Now please enter your password: (min length is 6 chars)");
-                do
-                {
-                    readPassword = Console.ReadLine();
-                    isCorrectPass = IsPasswordCorrect(readPassword);
-                } while (!isCorrectPass);
-
-                isFilled = CheckIsInputFilled(readEmail, readSite, readPassword);
-            }
-
-            if (!_webManager.CheckIsSiteAvailable(readSite))
-            {
-                Console.WriteLine("This site doesn't exist");
-                return null;
-            }
-
+        public User AddNewUserData()
+        { 
             int lastId = _userDataService.GetLastId();
-            var userData = new UserDataModel(lastId + 1, readSite, readEmail, readPassword);
+            string Site = GetUniqueSite("Enter a site name: ");
+            if (Site == null)
+                return null;
+            string newUserEmailOrLogin = GetCorrectEmail("Enter yor email: ");
+            string newUserPasswordString = GetCorrectUserPassword("Enter a password: ");
+
+            User newUser = new User(lastId+1, Site, newUserEmailOrLogin, newUserPasswordString);
 
             try
             {
-                _userDataService.AddItem(userData);
+                _userDataService.AddItem(newUser);
             }
             catch (Exception)
             {
@@ -101,13 +140,13 @@ namespace PasswordKeeper.App.Managers
             }
 
             Console.WriteLine("Password added correctly");
-            return userData;
+            return newUser;
         }
-        private UserDataModel GetUserBySite()
-        {
-            string readSite = Console.ReadLine();
 
-            if (!_userDataService.Items.Any(x => x.Site == readSite))
+        private User GetUserBySite()
+        {
+            string site = GetUserNotNullStringInput("Enter a site name: ");
+            if (!_userDataService.Items.Any(x => x.Site == site))
             {
                 Console.WriteLine("You have not saved password for this site");
                 return null;
@@ -115,7 +154,7 @@ namespace PasswordKeeper.App.Managers
 
             foreach (var userModel in _userDataService.Items)
             {
-                if (userModel.Site == readSite)
+                if (userModel.Site == site)
                 {
                     return userModel;
                 }
@@ -124,57 +163,44 @@ namespace PasswordKeeper.App.Managers
             return null;
         }
 
-        public UserDataModel RemoveUserData()
+        public int RemoveUserById()
         {
             GetAllPasswordsWithSites(false);
-            Console.WriteLine("Enter an id of site you want to delete: ");
-            var key = Console.ReadKey();
-            var readId = key.KeyChar.ToString();
+            Console.WriteLine("Enter an id that you want to delete: ");
+            var readId = GetUserIntKeyInput();
+            if(readId > _userDataService.Items.Count)
+            {
+                Console.WriteLine("\nIncorrect id");
+                return 0;
+            }
 
-            var user = GetUserById(int.Parse(readId));
+            if (!_userDataService.DeleteItemById(readId))
+                return 0;
 
-            if (!_userDataService.Items.Remove(user))
+            return readId;
+        }
+        public User ChangePasswordByUserDataId()
+        {
+            GetAllPasswordsWithSites(false);
+            Console.WriteLine("Enter an id that you want to change: ");
+            var readId = GetUserIntKeyInput();
+            if (readId > _userDataService.Items.Count)
             {
                 Console.WriteLine("\nIncorrect id");
                 return null;
             }
+            string emailOrLogin = GetUserNotNullStringInput("Enter yor email: ");
+            string passwordString = GetUserNotNullStringInput("Enter your password: ");
 
-            Console.WriteLine("\nData deleted correctly");
-            return user;
-        }
+            var user = GetUserById(readId);
 
-        public UserDataModel ChangePassword()
-        {
-            var isFilled = false;
-            string readSite = "", readEmail = "", readPassword = "";
-
-            GetAllPasswordsWithSites(false);
-            Console.WriteLine("Enter an id of site you want to change: ");
-            var key = Console.ReadKey();
-            var readId = key.KeyChar.ToString();
-
-            var user = GetUserById(int.Parse(readId));
-
-            while (isFilled == false)
-            {
-
-                Console.WriteLine("Enter a email for site where you want to change a password: ");
-                readEmail = Console.ReadLine();
-
-                Console.WriteLine("Enter an old password: ");
-                readPassword = Console.ReadLine();
-
-                isFilled = CheckIsInputFilled(readEmail, readPassword);
-            }
-
-            if (user.EmailOrLogin != readEmail || user.PasswordString != readPassword)
+            if (user.EmailOrLogin != emailOrLogin || user.PasswordString != passwordString)
             {
                 Console.WriteLine("Email/Login or password are incorrect");
                 return null;
             }
 
-            Console.WriteLine("Enter a new password:");
-            string readNewPassword = Console.ReadLine();
+            string readNewPassword = GetCorrectUserPassword("Enter a new password: ");
 
             user.PasswordString = readNewPassword;
 
@@ -184,74 +210,26 @@ namespace PasswordKeeper.App.Managers
 
         public void GetAllPasswordsWithSites(bool showAll = true)
         {
-            Console.WriteLine("ID|SITE|EMAIL|PASSWORD");
+            ConsoleTable table;
+            if (showAll)
+                table = new ConsoleTable("ID", "SITE", "EMAIL", "PASSWORD");
+            else
+                table = new ConsoleTable("ID", "SITE");
+
             foreach (var password in _userDataService.Items)
             {
-                Console.Write($"{password.Id}|{password.Site}");
                 if (showAll)
-                    Console.Write($"|{password.EmailOrLogin}|{password.PasswordString}");
-                Console.WriteLine();
+                    table.AddRow(password.Id, password.Site, password.EmailOrLogin, password.PasswordString);
+                else
+                    table.AddRow(password.Id, password.Site);
             }
+            Console.WriteLine(table.ToString());
         }
 
         public void FindPasswordOnWrittenSite()
         {
-            Console.WriteLine("Enter a site name: ");
-
-            UserDataModel userDataModel = GetUserBySite();
+            User userDataModel = GetUserBySite();
             Console.WriteLine($"A password for this site is: {userDataModel.PasswordString}");
-        }
-        public void GenerateRandomPassword()
-        {
-            char[] alphabet = new[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
-            char[] numbers = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-            char[] specialChars = new[] { '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+', '[', '{', ']', '}', ';', ':', '\'', '\"', ',', '.', '<', '>', '/', '?', '\\' };
-            bool hasUpperLetter = false, hasLowerLetter = false, hasSpecial = false, hasNumber = false;
-
-            string randomPassword = "";
-
-            while (!hasLowerLetter && !hasUpperLetter && !hasNumber && !hasSpecial)
-            {
-                randomPassword = "";
-
-                var random = new Random();
-                var randomLengthOfPassword = random.Next(16, 20);
-
-                for (int i = 0; i < randomLengthOfPassword; i++)
-                {
-                    var randomNumbers = random.Next(numbers.Length);
-                    var randomLetter = random.Next(alphabet.Length);
-                    var randomSpecial = random.Next(specialChars.Length);
-                    var randomUpperOrNot = random.Next(2);
-
-                    var randomNumberOrLetterOrSpecial = random.Next(1, 4);
-
-                    switch (randomNumberOrLetterOrSpecial)
-                    {
-                        case 1:
-                            if (randomUpperOrNot == 1)
-                            {
-                                randomPassword += char.ToUpper(alphabet[randomLetter]);
-                                hasUpperLetter = true;
-                            }
-                            else
-                            {
-                                randomPassword += alphabet[randomLetter];
-                                hasLowerLetter = false;
-                            }
-                            break;
-                        case 2:
-                            randomPassword += numbers[randomNumbers];
-                            hasNumber = true;
-                            break;
-                        case 3:
-                            randomPassword += specialChars[randomSpecial];
-                            hasSpecial = true;
-                            break;
-                    }
-                }
-            }
-            Console.WriteLine(randomPassword);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using PasswordKeeper.App.Common;
-using PasswordKeeper.App.Concrete;
 using PasswordKeeper.Domain.Entity;
 using System;
 using System.Collections.Generic;
@@ -7,29 +6,30 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PasswordKeeper.Cypher;
+using PasswordKeeper.App.Managers;
+using PasswordKeeper.Domain.Common;
 
-namespace PasswordKeeper.App.Managers
+namespace PasswordKeeper.App.Concrete
 {
-    public class TxtFileManager
+    public class TxtFileService
     {
         private const string PASSWORDS_FILE_PATH = "hasła.txt";
 
         private UserDataManager _passwordManager;
-        public TxtFileManager(UserDataManager passwordManager)
+        public TxtFileService(UserDataManager passwordManager)
         {
             _passwordManager = passwordManager;
         }
 
         public void SaveToTxtFile()
         {
-            List<UserDataModel> passwords = _passwordManager.GetPasswordsList();
+            var passwords = _passwordManager.GetPasswordsList();
             int i = 0;
 
             using (var sw = new StreamWriter(PASSWORDS_FILE_PATH, true))
             {
                 foreach (var password in passwords)
                 {
-                    //var encryptedEmail = EncryptionsMaker.MakeCesarEncryption(password.Value.EmailOrLogin);
                     var encryptedPassword = EncryptionsMaker.MakeCesarEncryption(password.PasswordString);
 
                     sw.WriteLine($"{password.Site}|{password.EmailOrLogin}|{encryptedPassword}");

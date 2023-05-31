@@ -1,6 +1,7 @@
 ﻿using PasswordKeeper.App.Concrete;
 using PasswordKeeper.App.Managers;
 using PasswordKeeper.Domain.Entity;
+
 namespace PasswordKeeper
 {
     public class Program
@@ -13,10 +14,13 @@ namespace PasswordKeeper
         {
             MenuActionService menuActionService = new MenuActionService();
             UserDataService userDataService = new UserDataService();
-            UserDataManager userDataManager = new UserDataManager(menuActionService,userDataService);
-            TxtFileManager txtFileService = new TxtFileManager(userDataManager);
 
-            userDataManager.InitializeSomePasswords();
+            UserDataManager userDataManager = new UserDataManager(menuActionService, userDataService);
+            TxtFileService txtFileService = new TxtFileService(userDataManager);
+
+            //seed 2 examples of users
+            userDataService.AddItem(new User(1, "wp.pl", "mich@wp.pl", "Password1"));
+            userDataService.AddItem(new User(2, "polska.pl", "mich@polska.pl", "Password2"));
 
             var chosenActionNumb = new ConsoleKeyInfo();
             while (chosenActionNumb.Key != ConsoleKey.D0)
@@ -40,10 +44,10 @@ namespace PasswordKeeper
                         userDataManager.AddNewUserData();
                         break;
                     case ConsoleKey.D2:
-                        userDataManager.RemoveUserData();
+                        userDataManager.RemoveUserById();
                         break;
                     case ConsoleKey.D3:
-                        userDataManager.ChangePassword();
+                        userDataManager.ChangePasswordByUserDataId();
                         break;
                     case ConsoleKey.D4:
                         userDataManager.GetAllPasswordsWithSites(); //in future only for admin
@@ -55,7 +59,8 @@ namespace PasswordKeeper
                         userDataManager.FindPasswordOnWrittenSite(); //in future only for admin
                         break;
                     case ConsoleKey.D7:
-                        userDataManager.GenerateRandomPassword();
+                        var randomPassword = userDataService.GenerateRandomPassword();
+                        Console.WriteLine(randomPassword);
                         break;
                     case ConsoleKey.D0:
                         Console.WriteLine("Goodbye");
@@ -68,6 +73,6 @@ namespace PasswordKeeper
             }
         }
 
-        
+
     }
 }

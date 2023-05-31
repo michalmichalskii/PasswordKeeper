@@ -10,16 +10,14 @@ namespace PasswordKeeper.Cypher
     {
         public static string MakeCesarEncryption(string clearInput, int key = 10)
         {
-            int encryption = 0;
-            string encryptedText = "";
+            StringBuilder encryptedText = new StringBuilder();
 
             for (int i = 0; i < clearInput.Length; i++)
             {
-                int textUser = clearInput[i];
-                encryption = textUser + key;
-                encryptedText += char.ConvertFromUtf32(encryption);
+                int encryption = clearInput[i] + key;
+                encryptedText.Append(char.ConvertFromUtf32(encryption));
             }
-            return encryptedText;
+            return encryptedText.ToString();
         }
     }
 }

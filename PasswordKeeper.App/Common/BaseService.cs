@@ -1,4 +1,5 @@
 ﻿using PasswordKeeper.App.Abstarct;
+using PasswordKeeper.App.Concrete;
 using PasswordKeeper.Domain.Common;
 using System;
 using System.Collections.Generic;
@@ -16,33 +17,57 @@ namespace PasswordKeeper.App.Common
         {
             Items = new List<T>();
         }
+
         public T GetItemById(int id)
         {
             var entity = Items.FirstOrDefault(p => p.Id == id);
             return entity;
         }
+        public bool DeleteItemById(int id)
+        {
+            try
+            {
+                Items.RemoveAt(id-1);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public int GetLastId()
         {
             int lastId;
-            if(Items.Any())
+            if (Items.Any())
             {
                 lastId = Items.OrderByDescending(x => x.Id).FirstOrDefault().Id;
             }
             else
             {
-                lastId=0;
+                lastId = 0;
             }
             return lastId;
         }
+
         public int AddItem(T item)
         {
             Items.Add(item);
             return item.Id;
         }
 
-        public void DeleteItem(T item)
+        public bool DeleteItem(T item)
         {
-            Items.Remove(item);
+            try
+            {
+                Items.Remove(item);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            
         }
 
         public List<T> GetAllItems()
@@ -53,7 +78,7 @@ namespace PasswordKeeper.App.Common
         public int UpdateItem(T item)
         {
             var entity = Items.FirstOrDefault(x => x.Id == item.Id);
-            if(entity != null)
+            if (entity != null)
             {
                 entity = item;
             }
