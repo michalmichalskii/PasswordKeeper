@@ -21,6 +21,10 @@ namespace PasswordKeeper
             //seed 2 examples of users
             userDataService.AddItem(new User(1, "wp.pl", "mich@wp.pl", "Password1"));
             userDataService.AddItem(new User(2, "polska.pl", "mich@polska.pl", "Password2"));
+            userDataService.AddItem(new User(3, "op.pl", "mich@op.pl", "123456"));
+            userDataService.AddItem(new User(4, "facebook.com", "mich@op.pl", "123456"));
+            userDataService.AddItem(new User(5, "ask.fm", "mich@op.pl", "123456"));
+            userDataService.AddItem(new User(6, "google.com", "mich@gmail.com", "123456"));
 
             var chosenActionNumb = new ConsoleKeyInfo();
             while (chosenActionNumb.Key != ConsoleKey.D0)

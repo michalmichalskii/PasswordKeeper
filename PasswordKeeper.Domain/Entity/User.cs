@@ -15,6 +15,5 @@ namespace PasswordKeeper.Domain.Entity
             EmailOrLogin = emailOrLogin;
             PasswordString = password;
         }
-
     }
 }

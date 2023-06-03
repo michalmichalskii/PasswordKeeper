@@ -23,11 +23,12 @@ namespace PasswordKeeper.App.Common
             var entity = Items.FirstOrDefault(p => p.Id == id);
             return entity;
         }
+
         public bool DeleteItemById(int id)
         {
             try
             {
-                Items.RemoveAt(id-1);
+                Items.Remove(GetItemById(id));
                 return true;
             }
             catch (Exception)
@@ -41,7 +42,7 @@ namespace PasswordKeeper.App.Common
             int lastId;
             if (Items.Any())
             {
-                lastId = Items.OrderByDescending(x => x.Id).FirstOrDefault().Id;
+                lastId = Items.LastOrDefault().Id;
             }
             else
             {
