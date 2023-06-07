@@ -1,6 +1,7 @@
 ﻿using PasswordKeeper.App.Abstarct;
 using PasswordKeeper.App.Concrete;
 using PasswordKeeper.Domain.Common;
+using PasswordKeeper.Domain.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

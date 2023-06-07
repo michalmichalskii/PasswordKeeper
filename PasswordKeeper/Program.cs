@@ -1,5 +1,6 @@
 ﻿using PasswordKeeper.App.Concrete;
 using PasswordKeeper.App.Managers;
+using PasswordKeeper.App.Settings;
 using PasswordKeeper.Domain.Entity;
 
 namespace PasswordKeeper
@@ -8,23 +9,16 @@ namespace PasswordKeeper
     {
 
         //TODO - 1.add something to check is Password strong
-        //TODO - 2.user has to get info if something goes wrong in incorrect try of password change
-
         static void Main(string[] args)
         {
-            MenuActionService menuActionService = new MenuActionService();
-            UserDataService userDataService = new UserDataService();
+            var menuActionService = new MenuActionService();
+            var userDataService = new UserDataService();
+            var jsonFileService = new JsonFileService(userDataService);
 
-            UserDataManager userDataManager = new UserDataManager(menuActionService, userDataService);
-            TxtFileService txtFileService = new TxtFileService(userDataManager);
+            var userDataManager = new UserDataManager(menuActionService, userDataService, jsonFileService);
 
-            //seed 2 examples of users
-            userDataService.AddItem(new User(1, "wp.pl", "mich@wp.pl", "Password1"));
-            userDataService.AddItem(new User(2, "polska.pl", "mich@polska.pl", "Password2"));
-            userDataService.AddItem(new User(3, "op.pl", "mich@op.pl", "123456"));
-            userDataService.AddItem(new User(4, "facebook.com", "mich@op.pl", "123456"));
-            userDataService.AddItem(new User(5, "ask.fm", "mich@op.pl", "123456"));
-            userDataService.AddItem(new User(6, "google.com", "mich@gmail.com", "123456"));
+            var appConfig = new AppConfig();
+            appConfig.SetConfig();
 
             var chosenActionNumb = new ConsoleKeyInfo();
             while (chosenActionNumb.Key != ConsoleKey.D0)
@@ -54,15 +48,12 @@ namespace PasswordKeeper
                         userDataManager.ChangePasswordByUserDataId();
                         break;
                     case ConsoleKey.D4:
-                        userDataManager.GetAllPasswordsWithSites(); //in future only for admin
+                        userDataManager.DisplayTableWithPasswords(); //in future only for admin
                         break;
                     case ConsoleKey.D5:
-                        txtFileService.SaveToTxtFile();
+                        userDataManager.FindPasswordBySite(); //in future only for admin
                         break;
                     case ConsoleKey.D6:
-                        userDataManager.FindPasswordOnWrittenSite(); //in future only for admin
-                        break;
-                    case ConsoleKey.D7:
                         var randomPassword = userDataService.GenerateRandomPassword();
                         Console.WriteLine(randomPassword);
                         break;

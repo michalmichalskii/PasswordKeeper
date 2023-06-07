@@ -1,10 +1,13 @@
 ﻿using ConsoleTables;
 using PasswordKeeper.App.Abstarct;
 using PasswordKeeper.App.Concrete;
+using PasswordKeeper.Cypher;
 using PasswordKeeper.Domain.Entity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net.Mail;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,13 +18,16 @@ namespace PasswordKeeper.App.Managers
     {
         private readonly MenuActionService _menuActionService;
         private IService<User> _userDataService;
-        private WebService _webManager;
-        public UserDataManager(MenuActionService actionService, IService<User> userDataService)
+        private WebService _webService;
+        private JsonFileService _jsonFileService;
+        public UserDataManager(MenuActionService actionService, IService<User> userDataService, JsonFileService jsonFileService)
         {
             _menuActionService = actionService;
-            _webManager = new WebService();
+            _webService = new WebService();
             _userDataService = userDataService;
+            _jsonFileService = jsonFileService;
         }
+
         private bool CheckIsInputFilled(params string[] checkedInput)
         {
             for (int i = 0; i < checkedInput.Length; i++)
@@ -35,12 +41,7 @@ namespace PasswordKeeper.App.Managers
 
             return true;
         }
-        private int GetUserIntKeyInput()
-        {
-            var key = Console.ReadKey();
-            var readId = key.KeyChar.ToString();
-            return int.Parse(readId);
-        }
+
         private string GetUserNotNullStringInput(string prompt)
         {
             string retrievedString = "";
@@ -53,6 +54,7 @@ namespace PasswordKeeper.App.Managers
             }
             return retrievedString;
         }
+
         private bool IsPasswordCorrect(string readPassword)
         {
             if (readPassword.Length < 6)
@@ -63,6 +65,7 @@ namespace PasswordKeeper.App.Managers
             else
                 return true;
         }
+
         private string GetCorrectUserPassword(string prompt)
         {
             bool isCorrectPass;
@@ -74,34 +77,30 @@ namespace PasswordKeeper.App.Managers
             } while (!isCorrectPass);
             return password;
         }
+
         private string GetUniqueSite(string prompt)
         {
             string site = GetUserNotNullStringInput(prompt);
-            foreach (var item in _userDataService.Items)
+
+            var UserAssignedToSite = _jsonFileService.GetAllUsersFromJson().Where(u => u.Site == site).FirstOrDefault();
+
+            if (UserAssignedToSite != null)
             {
-                if (item.Site == site)
-                {
-                    Console.WriteLine("You already have saved data for this site");
-                    return null;
-                }
+                Console.WriteLine("You already have saved data for this site");
+                return null;
+            }
+            if (!_webService.CheckIsSiteAvailable(site))
+            {
+                Console.WriteLine("This site doesn't exist");
+                return null;
             }
             return site;
         }
-        private string GetCorrectEmail(string prompt)
-        {
-            bool isCorrectEmail;
-            string email;
 
-            do
-            {
-                email = GetUserNotNullStringInput(prompt);
-                isCorrectEmail = IsEmailUniqueAndCorrect(email);
-            } while (!isCorrectEmail);
-            return email;
-        }
-        private bool IsEmailUniqueAndCorrect(string email)
+        private bool IsValidEmail(string email)
         {
-            if (!email.Contains('@') && !email.Contains('.'))
+            EmailAddressAttribute emailAddressAttribute = new EmailAddressAttribute();
+            if (!emailAddressAttribute.IsValid(email))
             {
                 Console.WriteLine("Incorrect email format");
                 return false;
@@ -109,25 +108,58 @@ namespace PasswordKeeper.App.Managers
             return true;
         }
 
+        private string GetCorrectEmail(string prompt)
+        {
+            bool isCorrectEmail;
+            string email;
+            do
+            {
+                email = GetUserNotNullStringInput(prompt);
+                isCorrectEmail = IsValidEmail(email);
+            } while (!isCorrectEmail);
+            return email;
+        }
+
         public List<User> GetPasswordsList()
         {
             return _userDataService.Items;
         }
+
         public User GetUserById(int id)
         {
             var item = _userDataService.GetItemById(id);
             return item;
         }
-        public User AddNewUserData()
-        { 
-            int lastId = _userDataService.GetLastId();
-            string Site = GetUniqueSite("Enter a site name: ");
-            if (Site == null)
+
+        private User GetUserBySite()
+        {
+            string site = GetUserNotNullStringInput("Enter a site name: ");
+            if (!_jsonFileService.GetAllUsersFromJson().Any(x => x.Site == site))
+            {
+                Console.WriteLine("You have not saved password for this site");
                 return null;
+            }
+
+            var user = _jsonFileService.GetAllUsersFromJson().Where(p => p.Site == site).FirstOrDefault();
+
+            return user;
+        }
+
+        //1
+        public User AddNewUserData()
+        {
+            _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
+            int lastId = _jsonFileService.GetLastIdFromJson();
+            string Site;
+            do
+            {
+                Site = GetUniqueSite("Enter a site name: ");
+            } while (Site == null);
+
             string newUserEmailOrLogin = GetCorrectEmail("Enter yor email: ");
             string newUserPasswordString = GetCorrectUserPassword("Enter a password: ");
 
-            User newUser = new User(lastId+1, Site, newUserEmailOrLogin, newUserPasswordString);
+            var newUser = new User(lastId + 1, Site, newUserEmailOrLogin, newUserPasswordString);
 
             try
             {
@@ -139,36 +171,20 @@ namespace PasswordKeeper.App.Managers
                 return null;
             }
 
+            _jsonFileService.UpdateJsonFile();
             Console.WriteLine("Password added correctly");
             return newUser;
         }
 
-        private User GetUserBySite()
-        {
-            string site = GetUserNotNullStringInput("Enter a site name: ");
-            if (!_userDataService.Items.Any(x => x.Site == site))
-            {
-                Console.WriteLine("You have not saved password for this site");
-                return null;
-            }
-
-            foreach (var userModel in _userDataService.Items)
-            {
-                if (userModel.Site == site)
-                {
-                    return userModel;
-                }
-            }
-
-            return null;
-        }
-
+        //2
         public int RemoveUserById()
         {
-            GetAllPasswordsWithSites(false);
+            DisplayTableWithPasswords();
+            _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
+
             Console.WriteLine("Enter an id that you want to delete: ");
-            var readId = GetUserIntKeyInput();
-            if(readId > _userDataService.Items.Count)
+            var readId = int.Parse(Console.ReadLine());
+            if (!_userDataService.Items.Where(u => u.Id == readId).Any())
             {
                 Console.WriteLine("\nIncorrect id");
                 return 0;
@@ -177,24 +193,29 @@ namespace PasswordKeeper.App.Managers
             if (!_userDataService.DeleteItemById(readId))
                 return 0;
 
+            _jsonFileService.UpdateJsonFile();
+
             return readId;
         }
+
+        //3
         public User ChangePasswordByUserDataId()
         {
-            GetAllPasswordsWithSites(false);
+            DisplayTableWithPasswords();
+            _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
+
             Console.WriteLine("Enter an id that you want to change: ");
-            var readId = GetUserIntKeyInput();
-            if (readId > _userDataService.Items.Count)
+            var readId = int.Parse(Console.ReadLine());
+            if (!_userDataService.Items.Where(u => u.Id == readId).Any())
             {
                 Console.WriteLine("\nIncorrect id");
                 return null;
             }
-            string emailOrLogin = GetUserNotNullStringInput("Enter yor email: ");
             string passwordString = GetUserNotNullStringInput("Enter your password: ");
 
             var user = GetUserById(readId);
 
-            if (user.EmailOrLogin != emailOrLogin || user.PasswordString != passwordString)
+            if (user.PasswordString != passwordString)
             {
                 Console.WriteLine("Email/Login or password are incorrect");
                 return null;
@@ -204,32 +225,45 @@ namespace PasswordKeeper.App.Managers
 
             user.PasswordString = readNewPassword;
 
+            _jsonFileService.UpdateJsonFile();
+
             Console.WriteLine("operation succeeded");
             return user;
         }
 
-        public void GetAllPasswordsWithSites(bool showAll = true)
+        //4
+        public int DisplayTableWithPasswords()
         {
-            ConsoleTable table;
-            if (showAll)
-                table = new ConsoleTable("ID", "SITE", "EMAIL", "PASSWORD");
-            else
-                table = new ConsoleTable("ID", "SITE");
+            var users = _jsonFileService.GetAllUsersFromJson();
 
-            foreach (var password in _userDataService.Items)
+            int i = 0;
+
+            ConsoleTable table;
+
+            table = new ConsoleTable("ID", "SITE", "EMAIL", "PASSWORD");
+
+            if (users != null)
             {
-                if (showAll)
-                    table.AddRow(password.Id, password.Site, password.EmailOrLogin, password.PasswordString);
-                else
-                    table.AddRow(password.Id, password.Site);
+                foreach (var user in users)
+                {
+                    table.AddRow(user.Id, user.Site, user.EmailOrLogin,"**********");
+                    i++;
+                }
             }
+
             Console.WriteLine(table.ToString());
+
+            return i;
         }
 
-        public void FindPasswordOnWrittenSite()
+        //5
+        public void FindPasswordBySite()
         {
             User userDataModel = GetUserBySite();
-            Console.WriteLine($"A password for this site is: {userDataModel.PasswordString}");
+            if (userDataModel != null)
+            {
+                Console.WriteLine($"A password for this site is: {userDataModel.PasswordString}");
+            }
         }
     }
 }

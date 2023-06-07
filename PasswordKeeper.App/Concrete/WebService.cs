@@ -21,7 +21,7 @@ namespace PasswordKeeper.App.Concrete
             }
             catch (Exception)
             {
-                throw new Exception("This site actually doesn't exist");
+                return false;
             }
 
             return result.Status == IPStatus.Success;
