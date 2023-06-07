@@ -1,4 +1,5 @@
-﻿using PasswordKeeper.App.Concrete;
+﻿using ConsoleTables;
+using PasswordKeeper.App.Concrete;
 using PasswordKeeper.App.Managers;
 using PasswordKeeper.App.Settings;
 using PasswordKeeper.Domain.Entity;
@@ -7,18 +8,16 @@ namespace PasswordKeeper
 {
     public class Program
     {
-
-        //TODO - 1.add something to check is Password strong
         static void Main(string[] args)
         {
+            var appConfig = new AppConfig();
+            appConfig.SetConfig();
+
             var menuActionService = new MenuActionService();
             var userDataService = new UserDataService();
             var jsonFileService = new JsonFileService(userDataService);
 
             var userDataManager = new UserDataManager(menuActionService, userDataService, jsonFileService);
-
-            var appConfig = new AppConfig();
-            appConfig.SetConfig();
 
             var chosenActionNumb = new ConsoleKeyInfo();
             while (chosenActionNumb.Key != ConsoleKey.D0)
@@ -48,10 +47,11 @@ namespace PasswordKeeper
                         userDataManager.ChangePasswordByUserDataId();
                         break;
                     case ConsoleKey.D4:
-                        userDataManager.DisplayTableWithPasswords(); //in future only for admin
+                        ConsoleTable limitedTable = userDataManager.DisplayLimitedTable();
+                        userDataManager.DisplayFullTable(limitedTable);
                         break;
                     case ConsoleKey.D5:
-                        userDataManager.FindPasswordBySite(); //in future only for admin
+                        userDataManager.FindPasswordBySite();
                         break;
                     case ConsoleKey.D6:
                         var randomPassword = userDataService.GenerateRandomPassword();

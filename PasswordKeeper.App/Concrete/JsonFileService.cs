@@ -22,6 +22,13 @@ namespace PasswordKeeper.App.Concrete
         public JsonFileService(IService<User> userDataService)
         {
             _userDataService = userDataService;
+            InitializePasswordJsonFile();
+        }
+
+        private void InitializePasswordJsonFile()
+        {
+            if (!File.Exists("passwords.json"))
+                using (File.Create("passwords.json")) ;
         }
 
         public string SerializeObjectsToJsonFileFormat()
@@ -40,19 +47,17 @@ namespace PasswordKeeper.App.Concrete
             var users = JsonConvert.DeserializeObject<List<User>>(jsonString);
             return users;
         }
-
-        private string GetFilePath()
+        public AppConfig GetDataFromAppsettingsFile()
         {
             var jsonString = File.ReadAllText("appsettings.json");
             var appConfig = JsonConvert.DeserializeObject<AppConfig>(jsonString);
-            string filePath = appConfig.PassordsFilePath;
-            return filePath;
+            return appConfig;
         }
 
         public void UpdateJsonFile()
         {
             string updatedJson = SerializeObjectsToJsonFileFormat();
-            using var sw = new StreamWriter(GetFilePath(), false);
+            using var sw = new StreamWriter(GetDataFromAppsettingsFile().PassordsFilePath, false);
             sw.Write(updatedJson);
         }
 
@@ -67,7 +72,7 @@ namespace PasswordKeeper.App.Concrete
 
         public List<User> GetAllUsersFromJson()
         {
-            string filePath = GetFilePath();
+            string filePath = GetDataFromAppsettingsFile().PassordsFilePath;
             using var sr = new StreamReader(filePath);
             string getText = "";
             string line;
@@ -77,12 +82,13 @@ namespace PasswordKeeper.App.Concrete
             }
 
             var users = DeserializeObjectsFromJsonFormat(getText);
-            foreach (var userData in users)
-            {
-                userData.PasswordString = DecryptionMaker.DecryptCipherTextToPlainText(userData.PasswordString);
-            }
+            
             if (users != null)
             {
+                foreach (var userData in users)
+                {
+                    userData.PasswordString = DecryptionMaker.DecryptCipherTextToPlainText(userData.PasswordString);
+                }
                 return users;
             }
             else

@@ -145,7 +145,6 @@ namespace PasswordKeeper.App.Managers
             return user;
         }
 
-        //1
         public User AddNewUserData()
         {
             _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
@@ -176,10 +175,9 @@ namespace PasswordKeeper.App.Managers
             return newUser;
         }
 
-        //2
         public int RemoveUserById()
         {
-            DisplayTableWithPasswords();
+            DisplayLimitedTable();
             _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
 
             Console.WriteLine("Enter an id that you want to delete: ");
@@ -198,10 +196,9 @@ namespace PasswordKeeper.App.Managers
             return readId;
         }
 
-        //3
         public User ChangePasswordByUserDataId()
         {
-            DisplayTableWithPasswords();
+            DisplayLimitedTable();
             _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
 
             Console.WriteLine("Enter an id that you want to change: ");
@@ -231,8 +228,7 @@ namespace PasswordKeeper.App.Managers
             return user;
         }
 
-        //4
-        public int DisplayTableWithPasswords()
+        public ConsoleTable DisplayLimitedTable()
         {
             var users = _jsonFileService.GetAllUsersFromJson();
 
@@ -253,16 +249,56 @@ namespace PasswordKeeper.App.Managers
 
             Console.WriteLine(table.ToString());
 
-            return i;
+            return table;
         }
 
-        //5
+        public int DisplayFullTable(ConsoleTable limitedTable)
+        {
+            var users = _jsonFileService.GetAllUsersFromJson();
+
+            if(users.Count == 0)
+                return 0;
+
+            Console.WriteLine("\nIf you want to see full table type an admin password, otherwise just click Enter button: ");
+            string password = Console.ReadLine();
+            if (!string.IsNullOrEmpty(password))
+            {
+                if (ValidAdminPassword(password))
+                {
+                    if (users != null)
+                    {
+                        limitedTable.Rows.Clear();
+                        foreach (var user in users)
+                        {
+                            limitedTable.AddRow(user.Id, user.Site, user.EmailOrLogin, user.PasswordString);
+                        }
+                    }
+                    Console.WriteLine(limitedTable.ToString());
+                }
+                else
+                {
+                    Console.WriteLine("Invalid password");
+                }
+            }
+            return users.Count;
+        }
+
+        private bool ValidAdminPassword(string password)
+        {
+            return EncryptionsMaker.EncryptPlainTextToCipherText(password) == _jsonFileService.GetDataFromAppsettingsFile().AdminPassword;
+        }
+
         public void FindPasswordBySite()
         {
-            User userDataModel = GetUserBySite();
-            if (userDataModel != null)
+            Console.WriteLine("Enter an admin password: ");
+            string password = Console.ReadLine();
+            if (ValidAdminPassword(password))
             {
-                Console.WriteLine($"A password for this site is: {userDataModel.PasswordString}");
+                User userDataModel = GetUserBySite();
+                if (userDataModel != null)
+                {
+                    Console.WriteLine($"A password for this site is: {userDataModel.PasswordString}");
+                }
             }
         }
     }
