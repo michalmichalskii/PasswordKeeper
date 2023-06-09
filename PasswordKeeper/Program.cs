@@ -15,9 +15,7 @@ namespace PasswordKeeper
 
             var menuActionService = new MenuActionService();
             var userDataService = new UserDataService();
-            var jsonFileService = new JsonFileService(userDataService);
-
-            var userDataManager = new UserDataManager(menuActionService, userDataService, jsonFileService);
+            var userDataManager = new UserDataManager(menuActionService, userDataService);
 
             var chosenActionNumb = new ConsoleKeyInfo();
             while (chosenActionNumb.Key != ConsoleKey.D0)
@@ -67,7 +65,5 @@ namespace PasswordKeeper
                 Console.WriteLine("\n--------------------------\n");
             }
         }
-
-
     }
 }

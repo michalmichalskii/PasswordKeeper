@@ -1,8 +1,10 @@
 ﻿using ConsoleTables;
 using PasswordKeeper.App.Abstarct;
 using PasswordKeeper.App.Concrete;
+using PasswordKeeper.App.Settings;
 using PasswordKeeper.Cypher;
 using PasswordKeeper.Domain.Entity;
+using PasswordKeeper.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,15 +19,13 @@ namespace PasswordKeeper.App.Managers
     public class UserDataManager
     {
         private readonly MenuActionService _menuActionService;
-        private IService<User> _userDataService;
+        private UserDataService _userDataService;
         private WebService _webService;
-        private JsonFileService _jsonFileService;
-        public UserDataManager(MenuActionService actionService, IService<User> userDataService, JsonFileService jsonFileService)
+        public UserDataManager(MenuActionService actionService, UserDataService userDataService)
         {
             _menuActionService = actionService;
             _webService = new WebService();
             _userDataService = userDataService;
-            _jsonFileService = jsonFileService;
         }
 
         private bool CheckIsInputFilled(params string[] checkedInput)
@@ -82,7 +82,7 @@ namespace PasswordKeeper.App.Managers
         {
             string site = GetUserNotNullStringInput(prompt);
 
-            var UserAssignedToSite = _jsonFileService.GetAllUsersFromJson().Where(u => u.Site == site).FirstOrDefault();
+            var UserAssignedToSite = _userDataService.GetAllUsersFromJson().Where(u => u.Site == site).FirstOrDefault();
 
             if (UserAssignedToSite != null)
             {
@@ -120,35 +120,24 @@ namespace PasswordKeeper.App.Managers
             return email;
         }
 
-        public List<User> GetPasswordsList()
-        {
-            return _userDataService.Items;
-        }
-
-        public User GetUserById(int id)
-        {
-            var item = _userDataService.GetItemById(id);
-            return item;
-        }
-
         private User GetUserBySite()
         {
             string site = GetUserNotNullStringInput("Enter a site name: ");
-            if (!_jsonFileService.GetAllUsersFromJson().Any(x => x.Site == site))
+            if (!_userDataService.GetAllUsersFromJson().Any(x => x.Site == site))
             {
                 Console.WriteLine("You have not saved password for this site");
                 return null;
             }
 
-            var user = _jsonFileService.GetAllUsersFromJson().Where(p => p.Site == site).FirstOrDefault();
+            var user = _userDataService.GetAllUsersFromJson().Where(p => p.Site == site).FirstOrDefault();
 
             return user;
         }
 
         public User AddNewUserData()
         {
-            _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
-            int lastId = _jsonFileService.GetLastIdFromJson();
+            _userDataService.Items = _userDataService.GetAllUsersFromJson();
+            int lastId = _userDataService.GetLastIdFromJson();
             string Site;
             do
             {
@@ -157,7 +146,7 @@ namespace PasswordKeeper.App.Managers
 
             string newUserEmailOrLogin = GetCorrectEmail("Enter yor email: ");
             string newUserPasswordString = GetCorrectUserPassword("Enter a password: ");
-
+            newUserPasswordString = EncryptionsMaker.EncryptPlainTextToCipherText(newUserPasswordString);
             var newUser = new User(lastId + 1, Site, newUserEmailOrLogin, newUserPasswordString);
 
             try
@@ -170,7 +159,8 @@ namespace PasswordKeeper.App.Managers
                 return null;
             }
 
-            _jsonFileService.UpdateJsonFile();
+            FilesHelper.SaveData(_userDataService.Items, "passwords.json");
+
             Console.WriteLine("Password added correctly");
             return newUser;
         }
@@ -178,7 +168,7 @@ namespace PasswordKeeper.App.Managers
         public int RemoveUserById()
         {
             DisplayLimitedTable();
-            _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
+            _userDataService.Items = _userDataService.GetAllUsersFromJson();
 
             Console.WriteLine("Enter an id that you want to delete: ");
             var readId = int.Parse(Console.ReadLine());
@@ -191,7 +181,7 @@ namespace PasswordKeeper.App.Managers
             if (!_userDataService.DeleteItemById(readId))
                 return 0;
 
-            _jsonFileService.UpdateJsonFile();
+            FilesHelper.SaveData(_userDataService.Items, "passwords.json");
 
             return readId;
         }
@@ -199,7 +189,7 @@ namespace PasswordKeeper.App.Managers
         public User ChangePasswordByUserDataId()
         {
             DisplayLimitedTable();
-            _userDataService.Items = _jsonFileService.GetAllUsersFromJson();
+            _userDataService.Items = _userDataService.GetAllUsersFromJson();
 
             Console.WriteLine("Enter an id that you want to change: ");
             var readId = int.Parse(Console.ReadLine());
@@ -209,10 +199,11 @@ namespace PasswordKeeper.App.Managers
                 return null;
             }
             string passwordString = GetUserNotNullStringInput("Enter your password: ");
+            string encryptedPasswordString = EncryptionsMaker.EncryptPlainTextToCipherText(passwordString);
 
-            var user = GetUserById(readId);
+            User user = _userDataService.GetItemById(readId);
 
-            if (user.PasswordString != passwordString)
+            if (user.PasswordString != encryptedPasswordString)
             {
                 Console.WriteLine("Email/Login or password are incorrect");
                 return null;
@@ -220,9 +211,9 @@ namespace PasswordKeeper.App.Managers
 
             string readNewPassword = GetCorrectUserPassword("Enter a new password: ");
 
-            user.PasswordString = readNewPassword;
+            user.PasswordString = EncryptionsMaker.EncryptPlainTextToCipherText(readNewPassword);
 
-            _jsonFileService.UpdateJsonFile();
+            FilesHelper.SaveData(_userDataService.Items, "passwords.json");
 
             Console.WriteLine("operation succeeded");
             return user;
@@ -230,7 +221,7 @@ namespace PasswordKeeper.App.Managers
 
         public ConsoleTable DisplayLimitedTable()
         {
-            var users = _jsonFileService.GetAllUsersFromJson();
+            var users = _userDataService.GetAllUsersFromJson();
 
             int i = 0;
 
@@ -242,7 +233,7 @@ namespace PasswordKeeper.App.Managers
             {
                 foreach (var user in users)
                 {
-                    table.AddRow(user.Id, user.Site, user.EmailOrLogin,"**********");
+                    table.AddRow(user.Id, user.Site, user.EmailOrLogin, "**********");
                     i++;
                 }
             }
@@ -254,9 +245,9 @@ namespace PasswordKeeper.App.Managers
 
         public int DisplayFullTable(ConsoleTable limitedTable)
         {
-            var users = _jsonFileService.GetAllUsersFromJson();
+            var users = _userDataService.GetAllUsersFromJson();
 
-            if(users.Count == 0)
+            if (users.Count == 0)
                 return 0;
 
             Console.WriteLine("\nIf you want to see full table type an admin password, otherwise just click Enter button: ");
@@ -270,7 +261,7 @@ namespace PasswordKeeper.App.Managers
                         limitedTable.Rows.Clear();
                         foreach (var user in users)
                         {
-                            limitedTable.AddRow(user.Id, user.Site, user.EmailOrLogin, user.PasswordString);
+                            limitedTable.AddRow(user.Id, user.Site, user.EmailOrLogin, DecryptionMaker.DecryptCipherTextToPlainText(user.PasswordString));
                         }
                     }
                     Console.WriteLine(limitedTable.ToString());
@@ -285,7 +276,7 @@ namespace PasswordKeeper.App.Managers
 
         private bool ValidAdminPassword(string password)
         {
-            return EncryptionsMaker.EncryptPlainTextToCipherText(password) == _jsonFileService.GetDataFromAppsettingsFile().AdminPassword;
+            return EncryptionsMaker.EncryptPlainTextToCipherText(password) == FilesHelper.LoadData<AppConfig>("appsettings.json").AdminPassword;
         }
 
         public void FindPasswordBySite()
@@ -297,7 +288,7 @@ namespace PasswordKeeper.App.Managers
                 User userDataModel = GetUserBySite();
                 if (userDataModel != null)
                 {
-                    Console.WriteLine($"A password for this site is: {userDataModel.PasswordString}");
+                    Console.WriteLine($"A password for this site is: {DecryptionMaker.DecryptCipherTextToPlainText(userDataModel.PasswordString)}");
                 }
             }
         }

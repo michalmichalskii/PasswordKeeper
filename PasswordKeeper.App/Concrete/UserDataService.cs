@@ -1,11 +1,38 @@
 ﻿using PasswordKeeper.App.Common;
+using PasswordKeeper.Cypher;
 using PasswordKeeper.Domain;
 using PasswordKeeper.Domain.Entity;
+using PasswordKeeper.Helpers;
 
 namespace PasswordKeeper.App.Concrete
 {
     public class UserDataService : BaseService<User>
     {
+        public int GetLastIdFromJson()
+        {
+            var users = GetAllUsersFromJson();
+            int lastId = 0;
+            if (users.Count > 0)
+                lastId = users.LastOrDefault().Id;
+            return lastId;
+        }
+
+        public List<User> GetAllUsersFromJson()
+        {
+            var users = FilesHelper.LoadData<List<User>>("passwords.json");
+            if (users != null)
+            {
+                foreach (var userData in users)
+                {
+                    userData.PasswordString = userData.PasswordString;
+                }
+                return users;
+            }
+            else
+            {
+                return Items;
+            }
+        }
         public string GenerateRandomPassword()
         {
             char[] alphabet = new[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
