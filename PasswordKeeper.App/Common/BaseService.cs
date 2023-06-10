@@ -27,15 +27,11 @@ namespace PasswordKeeper.App.Common
 
         public bool DeleteItemById(int id)
         {
-            try
-            {
-                Items.Remove(GetItemById(id));
+            bool removed = Items.Remove(GetItemById(id));
+            if (removed)
                 return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+
+            return false;
         }
 
         public int GetLastId()
@@ -60,31 +56,16 @@ namespace PasswordKeeper.App.Common
 
         public bool DeleteItem(T item)
         {
-            try
-            {
-                Items.Remove(item);
+            bool removed = Items.Remove(item);
+            if (removed)
                 return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            
+
+            return false;
         }
 
         public List<T> GetAllItems()
         {
             return Items;
-        }
-
-        public int UpdateItem(T item)
-        {
-            var entity = Items.FirstOrDefault(x => x.Id == item.Id);
-            if (entity != null)
-            {
-                entity = item;
-            }
-            return entity.Id;
         }
     }
 }

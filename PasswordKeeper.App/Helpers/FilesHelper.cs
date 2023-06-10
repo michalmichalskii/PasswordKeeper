@@ -13,7 +13,7 @@ namespace PasswordKeeper.Helpers
         public static T LoadData<T>(string jsonFile)
         {
             if (!File.Exists(jsonFile))
-                using (File.Create(jsonFile)) ;
+                File.Create(jsonFile);
 
             var jsonString = File.ReadAllText(jsonFile);
             var appConfig = JsonConvert.DeserializeObject<T>(jsonString);
@@ -22,7 +22,7 @@ namespace PasswordKeeper.Helpers
         public static void SaveData<T>(List<T> listOfData, string jsonFile)
         {
             if (!File.Exists(jsonFile))
-                using (File.Create(jsonFile)) ;
+                File.Create(jsonFile);
 
             string jsonOutput = JsonConvert.SerializeObject(listOfData);
 

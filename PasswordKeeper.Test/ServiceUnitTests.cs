@@ -11,41 +11,157 @@ namespace PasswordKeeper.Test
     public class ServiceUnitTests
     {
         [Fact]
-        public void CanAddItem()
+        public void AddItem_ReturnsTheirId()
         {
             //Arrange
             var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataModel2 = new User(2, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataModel3 = new User(3, "wp.pl", "mich@wp.pl", "Password1");
             var userDataService = new UserDataService();
 
             //Act
-            userDataService.AddItem(userDataModel);
-            userDataService.AddItem(userDataModel);
-            userDataService.AddItem(userDataModel);
-
-            var countOfItems = userDataService.GetAllItems();
+            int userOneId = userDataService.AddItem(userDataModel);
+            int userTwoId = userDataService.AddItem(userDataModel2);
+            int userThreeId = userDataService.AddItem(userDataModel3);
 
             //Assert
-            countOfItems.Should().NotBeNullOrEmpty();
-            countOfItems.Count.Should().Be(3);
+            userOneId.Should().Be(1);
+            userTwoId.Should().Be(2);
+            userThreeId.Should().Be(3);
         }
 
         [Fact]
-        public void CanDeleteItems()
+        public void GetItemByValidId_ReturnsItem()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataService = new UserDataService();
+            userDataService.AddItem(userDataModel);
+
+            //Act
+            var userOne = userDataService.GetItemById(1);
+
+            //Assert
+            userOne.Should().Be(userDataModel);
+        }
+
+        [Fact]
+        public void DeleteItemByValidId_ReturnsTrue()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataService = new UserDataService();
+            userDataService.AddItem(userDataModel);
+
+            //Act
+            bool isDeleted = userDataService.DeleteItemById(userDataModel.Id);
+
+            //Assert
+            isDeleted.Should().Be(true);
+        }
+
+        [Fact]
+        public void DeleteItemByInvalidId_ReturnsFalse()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataService = new UserDataService();
+            userDataService.AddItem(userDataModel);
+
+            //Act
+            bool isDeleted = userDataService.DeleteItemById(2);
+
+            //Assert
+            isDeleted.Should().Be(false);
+        }
+
+        [Fact]
+        public void DeleteValidItem_ReturnsTrue()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataService = new UserDataService();
+            userDataService.AddItem(userDataModel);
+
+            //Act
+            bool isDeleted = userDataService.DeleteItem(userDataModel);
+
+            //Assert
+            isDeleted.Should().Be(true);
+        }
+
+        [Fact]
+        public void DeleteInvalidItem_ReturnsFalse()
         {
             //Arrange
             var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
             var userDataService = new UserDataService();
 
             //Act
-            userDataService.AddItem(userDataModel);
-            userDataService.DeleteItemById(userDataModel.Id);
-            var countOfItems = userDataService.GetAllItems();
-
-            userDataService.GenerateRandomPassword();
+            bool isDeleted = userDataService.DeleteItem(userDataModel);
 
             //Assert
-            countOfItems.Should().BeEmpty();
-            countOfItems.Count.Should().Be(0);
+            isDeleted.Should().Be(false);
+        }
+
+        [Fact]
+        public void GetLastId()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataService = new UserDataService();
+            userDataService.AddItem(userDataModel);
+
+            //Act
+            int lastId = userDataService.GetLastId();
+
+            //Assert
+            lastId.Should().Be(1);
+        }
+
+        [Fact]
+        public void GetAllItems_ReturnsListOfItems()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var userDataService = new UserDataService();
+            userDataService.AddItem(userDataModel);
+
+            //Act
+            var listOfItems = userDataService.GetAllItems();
+
+            //Assert
+            listOfItems.Should().BeOfType(typeof(List<User>));
+            listOfItems.Should().HaveCount(1);
+            listOfItems.Should().Contain(userDataModel);
+        }
+
+        [Fact]
+        public void IsValidSiteAvailable_ReturnsTrue()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var webService = new WebService();
+
+            //Act
+            bool isAvaile = webService.CheckIsSiteAvailable(userDataModel.Site);
+
+            //Assert
+            isAvaile.Should().Be(true);
+        }
+
+        [Fact]
+        public void IsInvalidSiteAvailable_ReturnsFalse()
+        {
+            //Arrange
+            var userDataModel = new User(1, "wp.pl", "mich@wp.pl", "Password1");
+            var webService = new WebService();
+
+            //Act
+            bool isAvaile = webService.CheckIsSiteAvailable("ok");
+
+            //Assert
+            isAvaile.Should().Be(false);
         }
 
         [Fact]

@@ -21,17 +21,9 @@ namespace PasswordKeeper.App.Concrete
         {
             var users = FilesHelper.LoadData<List<User>>("passwords.json");
             if (users != null)
-            {
-                foreach (var userData in users)
-                {
-                    userData.PasswordString = userData.PasswordString;
-                }
                 return users;
-            }
             else
-            {
                 return Items;
-            }
         }
         public string GenerateRandomPassword()
         {

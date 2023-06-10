@@ -21,8 +21,6 @@ namespace PasswordKeeper.App.Abstarct
 
         bool DeleteItemById(int id);
 
-        int UpdateItem(T item);
-
         int GetLastId();
     }
 }
